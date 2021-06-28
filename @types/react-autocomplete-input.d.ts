@@ -6,7 +6,7 @@ declare module 'react-autocomplete-input' {
             defaultValue?: string
             disabled?: boolean
             maxOptions?: number
-            onSelect?: () => any
+            onSelect?: (string) => any
             changeOnSelect?: (trigger: any, slug: any) => any
             onRequestOptions?: () => any
             matchAny?: boolean
@@ -23,6 +23,7 @@ declare module 'react-autocomplete-input' {
             passThroughEnter?: boolean
             className?: string
             placeholder?: string
+            onChange?: (any) => any
     }
 
     const TextInput: FC<TextInputProps>

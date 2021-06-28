@@ -21,11 +21,22 @@ a {
 
 ul.react-autocomplete-input {
   position: absolute;
-  background-color: aliceblue;
+  padding: 0;
+  margin-top: 15px;
+
+  border-radius: 0px 8px 8px 8px;
+  overflow: hidden;
+
+  background: #e1e1e1;
+  box-shadow: 3px 6px 12px 6px rgba(0, 0, 0, 0.1);
 }
 
 ul.react-autocomplete-input > li {
+  list-style: none;
+  padding: 5px 20px;
 }
 
 ul.react-autocomplete-input > li.active {
+  background: #2c2c2c;
+  color: #fff;
 }

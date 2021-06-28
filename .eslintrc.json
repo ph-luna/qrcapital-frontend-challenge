@@ -21,5 +21,8 @@
         "react",
         "@typescript-eslint"
     ],
-    "rules": {}
+    "rules": {
+        "space-before-function-paren": "off",
+        "no-use-before-define": "off"
+    }
 }
