@@ -1,37 +1,34 @@
-import { FC, useState, useRef, FormEvent, useEffect } from 'react'
+import { FC, useState, useEffect } from 'react'
 import Head from 'next/head'
-import Image from 'next/image'
 import { GetStaticProps } from 'next'
 import axios from 'axios'
-import InputAutoComplete from 'react-autocomplete-input'
-import { ToastContainer, toast } from 'react-toastify'
+import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-interface ICriptos {
-  id: string
-  symbol: string
-  img: string | null
-  name: string
-  priceBRL: number
-  change24: number
-}
+import Header from 'components/Header'
+import Footer from 'components/Footer'
+import CriptoCard from 'components/CriptoCard'
+
+import ICriptos from 'interfaces/ICriptos'
+import ICriptosCurrency from 'interfaces/ICurrencyCriptos'
 interface IHomeProps {
-  criptoList: {
-    id: string
-    symbol: string
-    img: string | null
-    name: string
-  }[]
+  criptoList: ICriptos[]
 }
 
 const Home: FC<IHomeProps> = ({ criptoList }) => {
-  const [inputValue, setInputValue] = useState('')
-  const [criptos, setCriptos] = useState<ICriptos[]>([])
+  const [criptos, setCriptos] = useState<ICriptosCurrency[]>([])
   const [favCriptos, setFavCriptos] = useState<string[]>([])
-  const searchList = useRef(criptoList.map((cripto) => cripto.name))
+  const [isLoading, setIsLoading] = useState(false)
+  const [inputValue, setInputValue] = useState('')
 
   useEffect(() => {
     async function fetchCriptosPrice(): Promise<void> {
+      console.log(favCriptos)
+      if (favCriptos.length <= 0) {
+        setIsLoading(false)
+        return
+      }
+
       const stringSymbols = favCriptos.join(',')
       const { data } = await axios.get(
         `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${stringSymbols}&tsyms=BRL`
@@ -39,7 +36,7 @@ const Home: FC<IHomeProps> = ({ criptoList }) => {
 
       if (!data.RAW) return
 
-      const newCriptos: ICriptos[] = []
+      const newCriptos: ICriptosCurrency[] = []
 
       for (const key in data.RAW) {
         const newCripto = criptoList.find((cripto) => cripto.symbol === key)
@@ -54,57 +51,41 @@ const Home: FC<IHomeProps> = ({ criptoList }) => {
       }
 
       setCriptos(newCriptos)
+      setIsLoading(false)
     }
 
+    setIsLoading(true)
     fetchCriptosPrice()
-    const renew = setInterval(fetchCriptosPrice, 5000)
+    const renew = setInterval(fetchCriptosPrice, 10000)
 
     return () => clearInterval(renew)
   }, [favCriptos, criptoList])
 
-  const handleAddFavCripto = (event: FormEvent) => {
-    event.preventDefault()
+  const handleDeleteFavCripto = (criptoIndex: number) => {
     setFavCriptos((prevState) => {
       const newState = [...prevState]
-      const value = inputValue.toLowerCase()
-      const newCripto = criptoList.find(
-        (cripto) => cripto.symbol.toLowerCase() === value
+      const index = newState.findIndex(
+        (favCripto) => favCripto === criptos[criptoIndex].symbol
       )
 
-      if (!newCripto) {
-        const newCriptoByName = criptoList.find(
-          (cripto) => cripto.name.toLowerCase() === value
-        )
+      newState.splice(index, 1)
 
-        if (!newCriptoByName) {
-          toast.error('Cripto not Found.')
-          return newState
-        }
-
-        newState.push(newCriptoByName.symbol)
-        return newState
-      }
-
-      newState.push(newCripto.symbol)
       return newState
     })
 
-    setInputValue('')
-  }
+    setCriptos((prevState) => {
+      const newState = [...prevState]
 
-  const handleInputChange = (value: string) => {
-    setInputValue(value)
+      newState.splice(criptoIndex, 1)
+
+      return newState
+    })
   }
 
   return (
     <div>
       <Head>
         <title>Cripto Catch</title>
-        <meta
-          name="description"
-          content="The best place to catch your favorite cripto!"
-        />
-        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <ToastContainer
@@ -117,72 +98,38 @@ const Home: FC<IHomeProps> = ({ criptoList }) => {
         draggable
       />
 
-      <main className="bg-indigo-50 w-full min-h-screen flex items-center flex-col">
-        <header className="bg-gray-900 w-full flex justify-between p-4">
-          <h1 className="text-gray-200 text-4xl">Cripto Catch</h1>
-          <form action="" onSubmit={handleAddFavCripto}>
-            <InputAutoComplete
-              Component="input"
-              className="px-4 py-2 rounded-3xl ring-0 relative"
-              placeholder="Search Cripto"
-              options={searchList.current}
-              trigger=""
-              value={inputValue}
-              onSelect={handleInputChange}
-              onChange={handleInputChange}
-              passThroughEnter
-              spacer=""
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 mx-2 rounded-xl border-2 text-gray-100 border-green-100 bg-green-500 active:bg-green-700"
-            >
-              CATCH
-            </button>
-          </form>
-        </header>
+      <Header
+        criptoList={criptoList}
+        isLoading={isLoading}
+        setFavCriptos={setFavCriptos}
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+      />
 
-        <section className="bg-white p-2 m-2 w-10/12 max-w-screen-md rounded-xl">
-          {criptos.map((cripto, index) => {
-            const percentStyle =
-              cripto.change24 >= 0 ? 'text-green-600' : 'text-red-600'
-
-            return (
-              <div
-                key={`_cripto_tab_${index}`}
-                className="flex bg-indigo-200 h-24 p-2 items-center mb-4"
-              >
-                <div className="pr-4 pl-2">
-                  <Image
-                    src={`https://www.cryptocompare.com${cripto.img}`}
-                    width={60}
-                    height={60}
-                    alt="cripto-logo"
-                  />
-                </div>
-                <div className="w-1/3">
-                  <h2 className="text-3xl text-gray-900">{cripto.name}</h2>
-                  <p className="text-gray-700">{cripto.symbol}</p>
-                </div>
-                <div className="w-1/4 flex flex-col items-center">
-                  <p className="text-lg text-gray-900">Valor Atual:</p>
-                  <p className="text-gray-700 text-xl">
-                    {cripto.priceBRL?.toLocaleString('pt-br', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    })}
-                  </p>
-                </div>
-                <div className="flex-col items-center flex w-1/4">
-                  <p className="text-lg text-gray-900 pr-2">Sinalização:</p>
-                  <p
-                    className={`text-3xl ${percentStyle}`}
-                  >{`${cripto.change24}%`}</p>
-                </div>
-              </div>
-            )
-          })}
+      <main className="bg-indigo-50 w-full min-h-screen flex items-center flex-col justify-between">
+        <div className="w-full h-36 sm:h-20" />
+        <section className="bg-green-300 p-3 pb-0 my-10 w-10/12 max-w-screen-md rounded-xl shadow-xl">
+          {criptos.length <= 0 ? (
+            <p className="py-10 w-full text-center text-lg align-middle text-gray-600">
+              No crypto catched,
+              <br />
+              catch a crypto by searching its name or symbol in the search bar
+              above.
+            </p>
+          ) : (
+            criptos.map((cripto, index) => {
+              return (
+                <CriptoCard
+                  key={`_criptoCard_${index}`}
+                  cripto={cripto}
+                  handleDelete={() => handleDeleteFavCripto(index)}
+                />
+              )
+            })
+          )}
         </section>
+
+        <Footer />
       </main>
     </div>
   )
