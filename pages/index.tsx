@@ -23,7 +23,6 @@ const Home: FC<IHomeProps> = ({ criptoList }) => {
 
   useEffect(() => {
     async function fetchCriptosPrice(): Promise<void> {
-      console.log(favCriptos)
       if (favCriptos.length <= 0) {
         setIsLoading(false)
         return
@@ -86,6 +85,21 @@ const Home: FC<IHomeProps> = ({ criptoList }) => {
     <div>
       <Head>
         <title>Cripto Catch</title>
+
+        <meta
+          name="description"
+          content="The best place to catch your favorite cripto!"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="true"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Kanit&display=swap"
+          rel="stylesheet"
+        />
       </Head>
 
       <ToastContainer
@@ -143,12 +157,14 @@ export const getStaticProps: GetStaticProps = async () => {
   const criptoList = []
 
   for (const key in criptos) {
-    criptoList.push({
-      id: criptos[key].Id,
-      symbol: criptos[key].Symbol,
-      img: criptos[key].ImageUrl ? criptos[key].ImageUrl : null,
-      name: criptos[key].CoinName
-    })
+    if (criptos[key].IsTrading) {
+      criptoList.push({
+        id: criptos[key].Id,
+        symbol: criptos[key].Symbol,
+        img: criptos[key].ImageUrl ? criptos[key].ImageUrl : null,
+        name: criptos[key].CoinName
+      })
+    }
   }
 
   return {

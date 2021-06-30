@@ -7,7 +7,6 @@ declare module 'react-autocomplete-input' {
             disabled?: boolean
             maxOptions?: number
             onSelect?: (string) => any
-            changeOnSelect?: (trigger: any, slug: any) => any
             onRequestOptions?: () => any
             matchAny?: boolean
             offsetX?: number

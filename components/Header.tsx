@@ -1,5 +1,6 @@
 import { FC, FormEvent, useRef, Dispatch, SetStateAction } from 'react'
 import InputAutoComplete from 'react-autocomplete-input'
+import 'react-autocomplete-input/dist/bundle.css'
 import { toast } from 'react-toastify'
 
 import ICriptos from 'interfaces/ICriptos'
@@ -20,21 +21,20 @@ const Header: FC<IHeaderProps> = ({
   setInputValue
 }) => {
   const autoCompleteList = useRef(criptoList.map((cripto) => cripto.name))
+  const formRef = useRef<HTMLFormElement>(null)
 
-  const handleInputChange = (value: string) => {
-    setInputValue(value)
-  }
+  const handleAddFavCripto = (eventOrValue: FormEvent | string) => {
+    let value = inputValue
 
-  const handleAddFavCripto = (event: FormEvent) => {
-    event.preventDefault()
+    if (typeof eventOrValue === 'string') value = eventOrValue.toLowerCase()
+    else eventOrValue.preventDefault()
 
     setFavCriptos((prevState) => {
       const newState = [...prevState]
-      const value = inputValue.toLowerCase()
 
-      const newCripto = criptoList.find(
-        (cripto) => cripto.symbol.toLowerCase() === value
-      )
+      const newCripto = criptoList.find((cripto) => {
+        return cripto.symbol.toLowerCase() === value
+      })
 
       if (!newCripto) {
         const newCriptoByName = criptoList.find(
@@ -74,6 +74,14 @@ const Header: FC<IHeaderProps> = ({
     setInputValue('')
   }
 
+  const handleInputChange = (value: string) => {
+    setInputValue(value)
+  }
+
+  const handleSelect = (value: string) => {
+    setInputValue(value)
+  }
+
   return (
     <header className="bg-gray-900 z-50 fixed w-full h-36 sm:h-20 flex justify-center">
       <div className="h-36 w-full max-w-screen-xl py-2 flex flex-col justify-between  items-center sm:flex-row sm:h-20 sm:p-4">
@@ -84,6 +92,7 @@ const Header: FC<IHeaderProps> = ({
           action=""
           onSubmit={handleAddFavCripto}
           className="flex items-center flex-col sm:flex-row"
+          ref={formRef}
         >
           <InputAutoComplete
             Component="input"
@@ -92,9 +101,8 @@ const Header: FC<IHeaderProps> = ({
             options={autoCompleteList.current}
             trigger=""
             value={inputValue}
-            onSelect={handleInputChange}
+            onSelect={handleSelect}
             onChange={handleInputChange}
-            passThroughEnter
             spacer=""
           />
 
