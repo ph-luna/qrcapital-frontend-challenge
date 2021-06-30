@@ -24,10 +24,11 @@ const Header: FC<IHeaderProps> = ({
   const formRef = useRef<HTMLFormElement>(null)
 
   const handleAddFavCripto = (eventOrValue: FormEvent | string) => {
-    let value = inputValue
+    let value = inputValue.trim().toLowerCase()
 
-    if (typeof eventOrValue === 'string') value = eventOrValue.toLowerCase()
-    else eventOrValue.preventDefault()
+    if (typeof eventOrValue === 'string') {
+      value = eventOrValue.trim().toLowerCase()
+    } else eventOrValue.preventDefault()
 
     setFavCriptos((prevState) => {
       const newState = [...prevState]
@@ -80,6 +81,7 @@ const Header: FC<IHeaderProps> = ({
 
   const handleSelect = (value: string) => {
     setInputValue(value)
+    handleAddFavCripto(value)
   }
 
   return (
